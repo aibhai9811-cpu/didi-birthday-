@@ -561,7 +561,8 @@ button:focus-visible, a:focus-visible{
   transform: translateY(0);
   filter: blur(0);
 }
-.call-bar .call-btn{ pointer-events: auto; }
+.call-bar .call-btn{ pointer-events: none; }
+.call-bar.is-shown .call-btn{ pointer-events: auto; }
 
 .call-btn{
   position: relative;

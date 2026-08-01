@@ -11,12 +11,13 @@
      Put files in assets/images/ and list them here in order.
   ---------------------------------------------------------- */
   const PHOTO_DATA = [
-    { src: 'assets/images/gallery-1.jpg', caption: 'A smile that always makes home feel like home.' },
-    { src: 'assets/images/gallery-2.jpg', caption: 'No matter how far you are, you\u2019ll always be my Didi.' },
-    { src: 'assets/images/gallery-3.jpg', caption: 'Distance changed the address, not our relationship.' },
-    { src: 'assets/images/gallery-4.jpg', caption: 'Some people don\u2019t need to try. You just are the calm.' },
-    { src: 'assets/images/gallery-5.jpg', caption: 'Every golden hour reminds me of you.' },
-    { src: 'assets/images/gallery-6.jpg', caption: 'I miss you more than I say.' },
+    { src: 'assets/images/20220812_093508.jpg', caption: 'Where it all began — the years before I knew how to say it.' },
+    { src: 'assets/images/IMG_20250111_163717706.jpg', caption: 'A smile that always makes home feel like home.' },
+    { src: 'assets/images/IMG-20251015-WA0187.jpg', caption: 'No matter how far you are, you\u2019ll always be my Didi.' },
+    { src: 'assets/images/IMG_20260123_171413.jpg', caption: 'Distance changed the address, not our relationship.' },
+    { src: 'assets/images/IMG_20260123_171456.jpg', caption: 'Some people don\u2019t need to try. You just are the calm.' },
+    { src: 'assets/images/IMG_20260123_171806.jpg', caption: 'Every golden hour reminds me of you.' },
+    { src: 'assets/images/20260420_203738.jpg', caption: 'I miss you more than I say.' },
   ];
 
   const LETTER_TEXT = `Hello Didi... \u{1F60A}
@@ -568,7 +569,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   bgMusic.addEventListener('error', () => {
     musicFileMissing = true;
     musicToggle.classList.add('is-missing');
-    musicToggle.setAttribute('title', 'Add assets/music/theme.mp3 to enable music');
+    musicToggle.setAttribute('title', 'assets/music/after_the_longest_sunday.mp3 not found');
   });
 
   function attemptMusicStart() {

@@ -301,7 +301,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   let galleryBuilt = false;
   let galleryTimer = null;
   let currentSlide = 0;
-  const SLIDE_DURATION = 6000;
+  const SLIDE_DURATION = 1000;
 
   function buildGallery() {
     PHOTO_DATA.forEach((photo, idx) => {
@@ -313,6 +313,10 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       img.src = photo.src;
       img.alt = photo.caption;
       img.loading = idx === 0 ? 'eager' : 'lazy';
+      img.addEventListener('error', () => {
+        slide.classList.add('slide-missing');
+        slide.innerHTML = `<div class="slide-missing-note">Photo not found<br><code>${photo.src}</code></div>`;
+      });
       slide.appendChild(img);
       slidesEl.appendChild(slide);
 

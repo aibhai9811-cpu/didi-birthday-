@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>For My Didi</title>
+<meta name="description" content="A birthday letter, written in light." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ambient layers, present through the whole experience -->
+<canvas id="stars"></canvas>
+<div class="glow-field" aria-hidden="true">
+  <span class="glow glow-gold"></span>
+  <span class="glow glow-blue"></span>
+</div>
+<div id="cursor-glow" aria-hidden="true"></div>
+
+<!-- ================= PAGE 1 — THE INVITATION ================= -->
+<section class="act" id="act-1" data-act="1" aria-label="Opening">
+  <div class="act-inner">
+    <p class="eyebrow reveal">a small thing, for a big sister</p>
+    <h1 class="hero-line reveal">Someone has been waiting<br>to tell you something<span class="dots">&hellip;</span></h1>
+
+    <button id="openBtn" class="open-btn reveal" aria-label="Open your gift">
+      <span class="open-btn-glow"></span>
+      <span class="open-btn-label"><span class="spark">✨</span> Open</span>
+    </button>
+  </div>
+
+  <div class="constellation-hint reveal" aria-hidden="true">
+    <svg viewBox="0 0 200 60" class="thread-svg">
+      <path id="threadPath" d="M10,45 C 50,10 90,55 130,20 S 190,45 190,15" />
+    </svg>
+  </div>
+</section>
+
+<!-- ================= LOADER ================= -->
+<div id="loader" class="loader" aria-hidden="true">
+  <div class="loader-star"></div>
+  <p class="loader-text" id="loaderText">Gathering years of unspoken words&hellip;</p>
+</div>
+
+<!-- ================= PAGE 2 — THE LETTER ================= -->
+<section class="act" id="act-2" data-act="2" aria-label="A letter">
+  <div class="act-inner letter-inner">
+    <div class="letter-mark" aria-hidden="true">☾</div>
+    <p class="type-text" id="typeText"></p>
+    <button id="continueBtn" class="ghost-btn is-hidden">
+      <span>Continue</span>
+      <span class="arrow">→</span>
+    </button>
+  </div>
+</section>
+
+<!-- ================= PAGE 3 — THE GALLERY ================= -->
+<section class="act" id="act-3" data-act="3" aria-label="Memories">
+  <div class="gallery-stage">
+    <div class="slides" id="slides">
+      <!-- JS renders slides from PHOTO_DATA -->
+    </div>
+    <div class="gallery-frame-edge" aria-hidden="true"></div>
+    <div class="gallery-caption" id="galleryCaption"></div>
+    <div class="gallery-progress" id="galleryProgress" aria-hidden="true"></div>
+  </div>
+  <button id="toFinaleBtn" class="ghost-btn is-hidden gallery-continue">
+    <span>Keep going</span>
+    <span class="arrow">→</span>
+  </button>
+</section>
+
+<!-- ================= PAGE 4 — THE FINALE ================= -->
+<section class="act" id="act-4" data-act="4" aria-label="Happy Birthday">
+  <canvas id="confetti"></canvas>
+  <div class="hearts-field" id="heartsField" aria-hidden="true"></div>
+
+  <div class="act-inner finale-inner">
+    <p class="eyebrow reveal">wish granted</p>
+    <h1 class="finale-title reveal">Happy Birthday,<br><span class="didi-word">Didi</span> <span class="heart-emoji">❤️</span></h1>
+    <p class="finale-sub reveal">I miss you more than I say.</p>
+
+    <a href="tel:+919263297366" id="callBtn" class="call-btn reveal" aria-label="Call your little brother">
+      <span class="call-btn-glow"></span>
+      <span class="call-icon">📞</span>
+      <span>Call Your Little Brother</span>
+    </a>
+  </div>
+</section>
+
+<!-- ================= MUSIC CONTROL ================= -->
+<audio id="bgMusic" loop preload="none">
+  <source src="assets/music/theme.mp3" type="audio/mpeg" />
+</audio>
+<button id="musicToggle" class="music-toggle" aria-pressed="false" aria-label="Toggle background music">
+  <span class="music-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+</button>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -374,7 +374,7 @@ button:focus-visible, a:focus-visible{
   opacity: 0;
   transform: translateY(14%) scale(0.97);
   z-index: 1;
-  transition: transform 0.95s var(--ease-out), opacity 0.8s var(--ease-out);
+  transition: transform 0.45s var(--ease-out), opacity 0.4s var(--ease-out);
   will-change: transform, opacity;
 }
 .slide.is-active{
@@ -386,7 +386,7 @@ button:focus-visible, a:focus-visible{
   opacity: 0;
   transform: translateY(-10%) scale(1.02);
   z-index: 2;
-  transition: transform 0.95s var(--ease-soft), opacity 0.7s var(--ease-soft);
+  transition: transform 0.45s var(--ease-soft), opacity 0.35s var(--ease-soft);
 }
 .slide img{
   width: 100%; height: 100%;
@@ -395,11 +395,34 @@ button:focus-visible, a:focus-visible{
   transform: scale(1);
 }
 .slide.is-active img{
-  animation: kenburns 6.2s var(--ease-soft) forwards;
+  animation: kenburns 1.05s linear forwards;
 }
 @keyframes kenburns{
   from{ transform: scale(1.02) translate(0,0); }
-  to{ transform: scale(1.13) translate(-1.5%, -1%); }
+  to{ transform: scale(1.08) translate(-1%, -0.6%); }
+}
+.slide-missing{ background: linear-gradient(160deg, #161f33, #0c1220); }
+.slide-missing-note{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  padding: 0 10%;
+  font-family: var(--body);
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  line-height: 1.6;
+}
+.slide-missing-note code{
+  font-size: 0.72rem;
+  color: var(--gold);
+  background: rgba(232,194,122,0.08);
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 .gallery-frame-edge{
   position: absolute; inset: 0;
@@ -449,7 +472,7 @@ button:focus-visible, a:focus-visible{
 }
 .gallery-progress span.done::after{ width: 100%; }
 .gallery-progress span.active::after{
-  animation: fillBar 6s linear forwards;
+  animation: fillBar 1s linear forwards;
 }
 @keyframes fillBar{ to{ width: 100%; } }
 

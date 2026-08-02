@@ -20,6 +20,8 @@
     { src: 'assets/images/20260420_203738.jpg', caption: 'I miss you more than I say.' },
   ];
 
+  const HERO_TEXT = 'Someone has been waiting to tell you something\u2026';
+
   const LETTER_TEXT = `Hello Didi... \u{1F60A}
 
 Maine shayad kabhi tumhe birthday wish nahi kiya...
@@ -29,7 +31,7 @@ Lekin iska matlab ye kabhi nahi tha ki tum mere liye important nahi ho.
 Bas shayad main kabhi bol hi nahi paaya...`;
 
   /* ============================================================
-     Ambient starfield (canvas)
+     Ambient starfield (canvas) — twinkling, gently drifting
   ============================================================ */
   const starCanvas = document.getElementById('stars');
   const ctx = starCanvas.getContext('2d');
@@ -61,6 +63,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
         twinkleSpeed: Math.random() * 0.03 + 0.012,
         phase: Math.random() * Math.PI * 2,
         drift: Math.random() * 0.05 + 0.01,
+        parallax: Math.random() * 0.4 + 0.1,
         hue: Math.random() > 0.82 ? 'gold' : 'white',
         glow: isBig,
       };
@@ -68,6 +71,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   }
 
   let t = 0;
+  let parallaxX = 0, parallaxY = 0;
   function drawStars() {
     ctx.clearRect(0, 0, w, h);
     t += 1;
@@ -75,20 +79,22 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       const alpha = s.baseAlpha + Math.sin(t * s.twinkleSpeed + s.phase) * s.twinkleAmp;
       const clamped = Math.min(Math.max(alpha, 0.05), 1);
       const color = s.hue === 'gold' ? '232,194,122' : '255,255,255';
+      const px = s.x + parallaxX * s.parallax;
+      const py = s.y + parallaxY * s.parallax;
 
       if (s.glow) {
-        ctx.beginPath();
-        const grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 5);
+        const grad = ctx.createRadialGradient(px, py, 0, px, py, s.r * 5);
         grad.addColorStop(0, `rgba(${color},${clamped * 0.5})`);
         grad.addColorStop(1, `rgba(${color},0)`);
+        ctx.beginPath();
         ctx.fillStyle = grad;
-        ctx.arc(s.x, s.y, s.r * 5, 0, Math.PI * 2);
+        ctx.arc(px, py, s.r * 5, 0, Math.PI * 2);
         ctx.fill();
       }
 
       ctx.beginPath();
       ctx.fillStyle = `rgba(${color},${clamped})`;
-      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.arc(px, py, s.r, 0, Math.PI * 2);
       ctx.fill();
 
       if (!prefersReducedMotion) {
@@ -104,19 +110,46 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   drawStars();
 
   /* ============================================================
-     Cursor glow (desktop only)
+     Cursor glow + subtle star parallax (desktop only)
   ============================================================ */
   const cursorGlow = document.getElementById('cursor-glow');
   if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
     document.addEventListener('mousemove', (e) => {
       document.body.classList.add('cursor-ready');
       cursorGlow.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+      parallaxX = (e.clientX / w - 0.5) * -18;
+      parallaxY = (e.clientY / h - 0.5) * -18;
     }, { passive: true });
   }
 
   /* ============================================================
-     Synthesized sound effects (crackers / balloon pops / chime)
-     No audio files needed — generated with the Web Audio API.
+     Fireflies — soft glowing particles drifting upward
+  ============================================================ */
+  const fireflyField = document.getElementById('fireflies');
+  function spawnFireflies(count) {
+    for (let i = 0; i < count; i++) {
+      const f = document.createElement('span');
+      f.className = 'firefly';
+      f.style.left = Math.random() * 100 + '%';
+      f.style.top = Math.random() * 100 + '%';
+      f.style.setProperty('--fx1', (Math.random() * 50 - 25) + 'px');
+      f.style.setProperty('--fy1', (-(Math.random() * 40 + 20)) + 'px');
+      f.style.setProperty('--fx2', (Math.random() * 50 - 25) + 'px');
+      f.style.setProperty('--fy2', (-(Math.random() * 60 + 40)) + 'px');
+      f.style.setProperty('--fx3', (Math.random() * 50 - 25) + 'px');
+      f.style.setProperty('--fy3', (-(Math.random() * 80 + 60)) + 'px');
+      f.style.setProperty('--fx4', (Math.random() * 40 - 20) + 'px');
+      f.style.setProperty('--fy4', (-(Math.random() * 110 + 90)) + 'px');
+      const dur = Math.random() * 10 + 14;
+      f.style.animationDuration = dur + 's, ' + (dur * 0.5) + 's';
+      f.style.animationDelay = (-Math.random() * dur) + 's, ' + (-Math.random() * dur) + 's';
+      fireflyField.appendChild(f);
+    }
+  }
+  if (!prefersReducedMotion) spawnFireflies(16);
+
+  /* ============================================================
+     Synthesized sound effects — no audio files needed
   ============================================================ */
   let actx = null;
   function getAudioCtx() {
@@ -126,6 +159,22 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     }
     if (actx && actx.state === 'suspended') actx.resume();
     return actx;
+  }
+
+  function playNote(freq, duration) {
+    const ac = getAudioCtx();
+    if (!ac) return;
+    const now = ac.currentTime;
+    const osc = ac.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.16, now + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    osc.connect(gain).connect(ac.destination);
+    osc.start(now);
+    osc.stop(now + duration + 0.05);
   }
 
   function playCrackle() {
@@ -155,7 +204,6 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     noise.start(now);
     noise.stop(now + 0.36);
 
-    // a couple of tiny secondary pops for a "string of crackers" feel
     const echoes = Math.floor(Math.random() * 2) + 1;
     for (let e = 0; e < echoes; e++) {
       setTimeout(() => {
@@ -183,11 +231,9 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     osc.type = 'sine';
     osc.frequency.setValueAtTime(520, now);
     osc.frequency.exponentialRampToValueAtTime(90, now + 0.16);
-
     const gain = ac.createGain();
     gain.gain.setValueAtTime(0.22, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-
     osc.connect(gain).connect(ac.destination);
     osc.start(now);
     osc.stop(now + 0.2);
@@ -196,7 +242,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   function playChime() {
     const ac = getAudioCtx();
     if (!ac) return;
-    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+    const notes = [523.25, 659.25, 783.99, 1046.5];
     notes.forEach((freq, i) => {
       const start = ac.currentTime + i * 0.14;
       const osc = ac.createOscillator();
@@ -219,6 +265,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   function showAct(n) {
     acts.forEach(a => a.classList.toggle('is-active', a.dataset.act === String(n)));
     window.scrollTo({ top: 0, behavior: 'auto' });
+    document.body.classList.toggle('blur-stars', n === 2);
   }
   showAct(1);
 
@@ -229,23 +276,62 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   }
 
   /* ============================================================
-     PAGE 1 -> loader -> PAGE 2
+     PAGE 1 — typewriter hero line
+  ============================================================ */
+  const heroTypeText = document.getElementById('heroTypeText');
+
+  function startHeroTypewriter() {
+    if (prefersReducedMotion) {
+      heroTypeText.textContent = HERO_TEXT;
+      return;
+    }
+    const caret = document.createElement('span');
+    caret.className = 'type-caret';
+    let i = 0;
+    const speed = 34;
+    function tick() {
+      if (i <= HERO_TEXT.length) {
+        heroTypeText.textContent = HERO_TEXT.slice(0, i);
+        heroTypeText.appendChild(caret);
+        i++;
+        setTimeout(tick, speed);
+      } else {
+        setTimeout(() => caret.remove(), 900);
+      }
+    }
+    setTimeout(tick, 300);
+  }
+  startHeroTypewriter();
+
+  /* ============================================================
+     PAGE 1 -> screen flash -> loader -> PAGE 2
   ============================================================ */
   const openBtn = document.getElementById('openBtn');
   const loader = document.getElementById('loader');
+  const screenFlash = document.getElementById('screenFlash');
 
   openBtn.addEventListener('click', () => {
     vibrate(18);
+    getAudioCtx();
+    playNote(660, 0.5);
     openBtn.disabled = true;
-    loader.classList.add('is-active');
-    getAudioCtx(); // unlock audio on this first real user gesture
+    openBtn.classList.add('is-tapped');
+    screenFlash.classList.add('is-active');
     attemptMusicStart();
+
+    setTimeout(() => {
+      loader.classList.add('is-active');
+    }, 550);
+
+    setTimeout(() => {
+      screenFlash.classList.remove('is-active');
+    }, 1050);
 
     setTimeout(() => {
       loader.classList.remove('is-active');
       showAct(2);
       startTypewriter();
-    }, 2000);
+    }, 2550);
   });
 
   /* ============================================================
@@ -266,7 +352,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     }
 
     let i = 0;
-    const speed = 28; // ms per character
+    const speed = 28;
     function tick() {
       if (i <= LETTER_TEXT.length) {
         typeText.textContent = LETTER_TEXT.slice(0, i);
@@ -287,64 +373,73 @@ Bas shayad main kabhi bol hi nahi paaya...`;
 
   continueBtn.addEventListener('click', () => {
     vibrate(12);
+    playNote(587, 0.45);
     showAct(3);
     startGallery();
   });
 
   /* ============================================================
-     PAGE 3 — cinematic gallery
+     PAGE 3 — polaroid-story gallery
   ============================================================ */
   const slidesEl = document.getElementById('slides');
-  const captionEl = document.getElementById('galleryCaption');
-  const progressEl = document.getElementById('galleryProgress');
+  const dotsEl = document.getElementById('galleryDots');
   const toFinaleBtn = document.getElementById('toFinaleBtn');
 
   let galleryBuilt = false;
   let galleryTimer = null;
   let currentSlide = 0;
-  const SLIDE_DURATION = 1000;
+  const SLIDE_DURATION = 5500;
 
   function buildGallery() {
     PHOTO_DATA.forEach((photo, idx) => {
       const slide = document.createElement('div');
-      slide.className = 'slide';
+      slide.className = 'slide ' + (idx % 2 === 0 ? 'slide-from-left' : 'slide-from-right');
       slide.dataset.index = idx;
 
+      const polaroid = document.createElement('div');
+      polaroid.className = 'polaroid';
+      const tilt = (idx % 2 === 0 ? -1 : 1) * (Math.random() * 2 + 1.5);
+      polaroid.style.setProperty('--tilt', tilt.toFixed(1) + 'deg');
+
+      const photoBox = document.createElement('div');
+      photoBox.className = 'polaroid-photo';
       const img = document.createElement('img');
       img.src = photo.src;
       img.alt = photo.caption;
       img.loading = idx === 0 ? 'eager' : 'lazy';
       img.addEventListener('error', () => {
-        slide.classList.add('slide-missing');
-        slide.innerHTML = `<div class="slide-missing-note">Photo not found<br><code>${photo.src}</code></div>`;
+        photoBox.classList.add('slide-missing');
+        photoBox.innerHTML = `<div class="slide-missing-note">Photo not found<br><code>${photo.src}</code></div>`;
       });
-      slide.appendChild(img);
+      photoBox.appendChild(img);
+
+      const caption = document.createElement('p');
+      caption.className = 'polaroid-caption';
+      caption.innerHTML = `<span>${photo.caption}</span><span class="heart-mini">\u2661</span>`;
+
+      polaroid.appendChild(photoBox);
+      polaroid.appendChild(caption);
+      slide.appendChild(polaroid);
       slidesEl.appendChild(slide);
 
-      const bar = document.createElement('span');
-      progressEl.appendChild(bar);
+      const dot = document.createElement('span');
+      dotsEl.appendChild(dot);
     });
     galleryBuilt = true;
   }
 
   function renderSlide(idx) {
     const slides = slidesEl.querySelectorAll('.slide');
-    const bars = progressEl.querySelectorAll('span');
+    const dots = dotsEl.querySelectorAll('span');
 
     slides.forEach((s, i) => {
       s.classList.toggle('is-active', i === idx);
       s.classList.toggle('is-prev', i === idx - 1);
     });
-    bars.forEach((b, i) => {
-      b.classList.toggle('done', i < idx);
-      b.classList.toggle('active', i === idx);
+    dots.forEach((d, i) => {
+      d.classList.toggle('done', i < idx);
+      d.classList.toggle('active', i === idx);
     });
-
-    captionEl.classList.remove('is-shown');
-    setTimeout(() => {
-      captionEl.textContent = PHOTO_DATA[idx].caption;
-      captionEl.classList.add('is-shown');
-    }, 250);
   }
 
   function nextSlide() {
@@ -367,13 +462,76 @@ Bas shayad main kabhi bol hi nahi paaya...`;
 
   toFinaleBtn.addEventListener('click', () => {
     vibrate(14);
+    playNote(784, 0.55);
     showAct(4);
     startFinale();
   });
 
   /* ============================================================
-     PAGE 4 — confetti + floating hearts
+     PAGE 4 — heart-particle formation + confetti + hearts + balloons
   ============================================================ */
+  const heartCanvas = document.getElementById('heartCanvas');
+  const hctx = heartCanvas.getContext('2d');
+  let heartTargets = [];
+  let heartParticles = [];
+  let heartRunning = false;
+
+  function resizeHeartCanvas() {
+    heartCanvas.width = window.innerWidth;
+    heartCanvas.height = window.innerHeight;
+    buildHeartTargets();
+  }
+  window.addEventListener('resize', resizeHeartCanvas, { passive: true });
+
+  function buildHeartTargets() {
+    const cx = heartCanvas.width / 2;
+    const cy = heartCanvas.height * 0.27;
+    const scale = Math.min(heartCanvas.width, heartCanvas.height) * 0.017;
+    heartTargets = [];
+    const count = prefersReducedMotion ? 60 : 140;
+    for (let i = 0; i < count; i++) {
+      const angle = (Math.PI * 2 * i) / count;
+      const hx = 16 * Math.pow(Math.sin(angle), 3);
+      const hy = 13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle);
+      heartTargets.push({
+        x: cx + hx * scale,
+        y: cy - hy * scale,
+      });
+    }
+  }
+
+  function seedHeartParticles() {
+    heartParticles = heartTargets.map(target => ({
+      x: Math.random() * heartCanvas.width,
+      y: heartCanvas.height + Math.random() * 200,
+      tx: target.x,
+      ty: target.y,
+      phase: Math.random() * Math.PI * 2,
+      speed: Math.random() * 0.04 + 0.05,
+      size: Math.random() * 1.6 + 1.6,
+      color: Math.random() > 0.5 ? '248,227,171' : '232,138,138',
+    }));
+  }
+
+  let heartFrame = 0;
+  function drawHearts() {
+    hctx.clearRect(0, 0, heartCanvas.width, heartCanvas.height);
+    heartFrame++;
+    heartParticles.forEach(p => {
+      p.x += (p.tx - p.x) * p.speed;
+      p.y += (p.ty - p.y) * p.speed;
+      const twinkle = 0.55 + Math.sin(heartFrame * 0.05 + p.phase) * 0.35;
+      hctx.beginPath();
+      hctx.fillStyle = `rgba(${p.color},${Math.max(twinkle, 0.15)})`;
+      hctx.shadowColor = `rgba(${p.color},0.8)`;
+      hctx.shadowBlur = 6;
+      hctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      hctx.fill();
+    });
+    if (heartRunning) requestAnimationFrame(drawHearts);
+  }
+
+  /* ---- confetti + fireworks canvas ---- */
   const confettiCanvas = document.getElementById('confetti');
   const cctx = confettiCanvas.getContext('2d');
   let confettiPieces = [];
@@ -433,7 +591,6 @@ Bas shayad main kabhi bol hi nahi paaya...`;
         p.y += p.speed;
         p.x += p.drift;
         p.rotation += p.rotSpeed;
-
         cctx.save();
         cctx.translate(p.x, p.y);
         cctx.rotate((p.rotation * Math.PI) / 180);
@@ -444,10 +601,9 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       } else if (p.type === 'spark') {
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.045; // gentle gravity
+        p.vy += 0.045;
         p.vx *= 0.985;
         p.life -= p.decay;
-
         cctx.save();
         cctx.globalAlpha = Math.max(p.life, 0);
         cctx.fillStyle = p.color;
@@ -462,26 +618,10 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     confettiPieces = confettiPieces.filter(p =>
       p.type === 'confetti' ? p.y < confettiCanvas.height + 30 : p.life > 0
     );
-
     if (confettiRunning) requestAnimationFrame(drawConfetti);
   }
 
-  const callBar = document.getElementById('callBar');
-  const heartsField = document.getElementById('heartsField');
-  const HEART_SYMBOLS = ['\u2764\uFE0F', '\u2728', '\u{1F49B}'];
-  function spawnHeart() {
-    const heart = document.createElement('span');
-    heart.className = 'floating-heart';
-    heart.textContent = HEART_SYMBOLS[Math.floor(Math.random() * HEART_SYMBOLS.length)];
-    heart.style.left = Math.random() * 100 + '%';
-    heart.style.setProperty('--drift', (Math.random() * 120 - 60) + 'px');
-    heart.style.setProperty('--rot', (Math.random() * 40 - 20) + 'deg');
-    heart.style.animationDuration = (Math.random() * 4 + 7) + 's';
-    heart.style.fontSize = (Math.random() * 0.8 + 0.9) + 'rem';
-    heartsField.appendChild(heart);
-    setTimeout(() => heart.remove(), 12000);
-  }
-
+  /* ---- balloons ---- */
   const balloonField = document.getElementById('balloonField');
   const BALLOON_COLORS = ['#e8c27a', '#e77a7a', '#6fa3d8', '#f2f0ea', '#c58cf0'];
 
@@ -504,11 +644,28 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     wrap.innerHTML = balloonSvg(BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)])
       + '<span class="string"></span>';
     balloonField.appendChild(wrap);
-
     if (withSound) setTimeout(() => playPop(), 200 + Math.random() * 300);
     setTimeout(() => wrap.remove(), 14000);
   }
 
+  /* ---- floating hearts ---- */
+  const heartsField = document.getElementById('heartsField');
+  const HEART_SYMBOLS = ['\u2764\uFE0F', '\u2728', '\u{1F49B}'];
+  function spawnHeart() {
+    const heart = document.createElement('span');
+    heart.className = 'floating-heart';
+    heart.textContent = HEART_SYMBOLS[Math.floor(Math.random() * HEART_SYMBOLS.length)];
+    heart.style.left = Math.random() * 100 + '%';
+    heart.style.setProperty('--drift', (Math.random() * 120 - 60) + 'px');
+    heart.style.setProperty('--rot', (Math.random() * 40 - 20) + 'deg');
+    heart.style.animationDuration = (Math.random() * 4 + 7) + 's';
+    heart.style.fontSize = (Math.random() * 0.8 + 0.9) + 'rem';
+    heartsField.appendChild(heart);
+    setTimeout(() => heart.remove(), 12000);
+  }
+
+  const callBar = document.getElementById('callBar');
+  const callBtn = document.getElementById('callBtn');
   let heartInterval = null;
   let balloonInterval = null;
   let finaleStarted = false;
@@ -518,24 +675,29 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     finaleStarted = true;
     vibrate([10, 40, 10, 40, 30]);
 
+    document.body.classList.add('is-bright');
+
+    resizeHeartCanvas();
+    seedHeartParticles();
+    heartRunning = true;
+    drawHearts();
+
     resizeConfetti();
     confettiRunning = true;
     spawnConfetti(prefersReducedMotion ? 40 : 120);
     drawConfetti();
 
-    // celebratory chime right away
     playChime();
 
-    // a burst of crackers across the sky over the first few seconds
     const burstSpots = prefersReducedMotion ? 2 : 6;
     for (let i = 0; i < burstSpots; i++) {
       setTimeout(() => {
         const x = confettiCanvas.width * (0.2 + Math.random() * 0.6);
-        const y = confettiCanvas.height * (0.15 + Math.random() * 0.35);
+        const y = confettiCanvas.height * (0.45 + Math.random() * 0.3);
         spawnFirework(x, y);
-      }, 250 + i * (prefersReducedMotion ? 500 : 380) + Math.random() * 200);
+      }, 900 + i * (prefersReducedMotion ? 500 : 380) + Math.random() * 200);
     }
-    setTimeout(() => { confettiRunning = false; }, 7000);
+    setTimeout(() => { confettiRunning = false; }, 7500);
 
     if (!prefersReducedMotion) {
       heartInterval = setInterval(spawnHeart, 600);
@@ -552,10 +714,10 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       spawnBalloon(false);
     }
 
-    // let the sky settle for a beat, then invite her to call
     setTimeout(() => {
       callBar.classList.add('is-shown');
-    }, prefersReducedMotion ? 600 : 1800);
+      callBtn.classList.add('is-pulsing');
+    }, prefersReducedMotion ? 600 : 2000);
   }
 
   /* ============================================================
@@ -584,7 +746,6 @@ Bas shayad main kabhi bol hi nahi paaya...`;
           musicToggle.setAttribute('aria-pressed', 'true');
         })
         .catch(() => {
-          // autoplay blocked — the floating button remains available
           musicToggle.classList.remove('is-playing');
           musicToggle.setAttribute('aria-pressed', 'false');
         });
@@ -608,7 +769,6 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     }
   });
 
-  /* call button — gentle vibration on tap */
-  document.getElementById('callBtn').addEventListener('click', () => vibrate(20));
+  callBtn.addEventListener('click', () => vibrate(20));
 
 })();

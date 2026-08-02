@@ -16,19 +16,31 @@
 
 <!-- ambient layers, present through the whole experience -->
 <canvas id="stars"></canvas>
-<div class="glow-field" aria-hidden="true">
+<div class="glow-field" id="glowField" aria-hidden="true">
   <span class="glow glow-gold"></span>
   <span class="glow glow-blue"></span>
 </div>
+<div class="fireflies" id="fireflies" aria-hidden="true"></div>
 <div id="cursor-glow" aria-hidden="true"></div>
+<div id="screenFlash" class="screen-flash" aria-hidden="true"></div>
 
 <!-- ================= PAGE 1 — THE INVITATION ================= -->
 <section class="act" id="act-1" data-act="1" aria-label="Opening">
-  <div class="act-inner">
-    <p class="eyebrow reveal">a small thing, for a big sister</p>
-    <h1 class="hero-line reveal">Someone has been waiting<br>to tell you something<span class="dots">&hellip;</span></h1>
+  <svg class="moon" viewBox="0 0 100 100" aria-hidden="true">
+    <path d="M62 8C40 8 22 26 22 50s18 42 40 42c8 0 15.4-2.3 21.6-6.3C68 89 52 77 52 50S68 11 83.6 6.3C77.4 10.3 70 8 62 8Z" fill="url(#moonGrad)"/>
+    <defs>
+      <linearGradient id="moonGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#f8e3ab"/>
+        <stop offset="100%" stop-color="#e8c27a"/>
+      </linearGradient>
+    </defs>
+  </svg>
 
-    <button id="openBtn" class="open-btn reveal" aria-label="Open your gift">
+  <div class="act-inner">
+    <div class="heart-icon reveal" aria-hidden="true">♡</div>
+    <h1 class="hero-line reveal" id="heroLine"><span id="heroTypeText"></span></h1>
+
+    <button id="openBtn" class="open-btn reveal pulse" aria-label="Open your gift">
       <span class="open-btn-glow"></span>
       <span class="open-btn-label"><span class="spark">✨</span> Open</span>
     </button>
@@ -39,6 +51,12 @@
       <path id="threadPath" d="M10,45 C 50,10 90,55 130,20 S 190,45 190,15" />
     </svg>
   </div>
+
+  <div class="page1-photo" aria-hidden="true">
+    <div class="page1-photo-fade"></div>
+    <img src="assets/images/IMG_20260123_171806.jpg" alt="" />
+  </div>
+  <p class="made-with-love">Made with love <span aria-hidden="true">🤍</span></p>
 </section>
 
 <!-- ================= LOADER ================= -->
@@ -49,7 +67,20 @@
 
 <!-- ================= PAGE 2 — THE LETTER ================= -->
 <section class="act" id="act-2" data-act="2" aria-label="A letter">
-  <div class="act-inner letter-inner">
+  <svg class="hanging-star" viewBox="0 0 60 90" aria-hidden="true">
+    <line x1="30" y1="0" x2="30" y2="34" stroke="rgba(232,194,122,0.35)" stroke-width="1"/>
+    <g transform="translate(30,52)">
+      <path d="M0,-16 L4.4,-5 16,-5 6.5,2 10,14 0,7 -10,14 -6.5,2 -16,-5 -4.4,-5 Z" fill="url(#starGrad)"/>
+    </g>
+    <defs>
+      <radialGradient id="starGrad">
+        <stop offset="0%" stop-color="#f8e3ab"/>
+        <stop offset="100%" stop-color="#e8c27a"/>
+      </radialGradient>
+    </defs>
+  </svg>
+
+  <div class="act-inner letter-inner letter-card" id="letterCard">
     <div class="letter-mark" aria-hidden="true">☾</div>
     <p class="type-text" id="typeText"></p>
     <button id="continueBtn" class="ghost-btn is-hidden">
@@ -61,14 +92,13 @@
 
 <!-- ================= PAGE 3 — THE GALLERY ================= -->
 <section class="act" id="act-3" data-act="3" aria-label="Memories">
-  <div class="gallery-stage">
+  <p class="gallery-heading reveal">✨ Memories ✨</p>
+  <div class="gallery-stage" id="galleryStage">
     <div class="slides" id="slides">
-      <!-- JS renders slides from PHOTO_DATA -->
+      <!-- JS renders polaroid slides from PHOTO_DATA -->
     </div>
-    <div class="gallery-frame-edge" aria-hidden="true"></div>
-    <div class="gallery-caption" id="galleryCaption"></div>
-    <div class="gallery-progress" id="galleryProgress" aria-hidden="true"></div>
   </div>
+  <div class="gallery-dots" id="galleryDots" aria-hidden="true"></div>
   <button id="toFinaleBtn" class="ghost-btn is-hidden gallery-continue">
     <span>Keep going</span>
     <span class="arrow">→</span>
@@ -77,6 +107,7 @@
 
 <!-- ================= PAGE 4 — THE FINALE ================= -->
 <section class="act" id="act-4" data-act="4" aria-label="Happy Birthday">
+  <canvas id="heartCanvas" class="heart-canvas"></canvas>
   <canvas id="confetti"></canvas>
   <div class="hearts-field" id="heartsField" aria-hidden="true"></div>
   <div class="balloon-field" id="balloonField" aria-hidden="true"></div>
@@ -88,7 +119,7 @@
 </section>
 
 <div class="call-bar" id="callBar">
-  <a href="tel:+919263297366" id="callBtn" class="call-btn" aria-label="Call your little brother">
+  <a href="tel:+919263297366" id="callBtn" class="call-btn pulse-btn" aria-label="Call your little brother">
     <span class="call-btn-glow"></span>
     <span class="call-icon">📞</span>
     <span>Call Your Little Brother</span>

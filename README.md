@@ -69,32 +69,38 @@ Since you already build on GitHub with the web UI + Pages:
 
 No build step, no dependencies — it just works once the files are uploaded.
 
-## Notes on the experience (matches your template)
+## Notes on the experience
 
 - **Page 1** — a crescent moon, twinkling parallax stars, floating fireflies,
   your hero line typing itself out letter by letter, a gently pulsing "Open"
   button, and one of your photos faded in at the bottom with a "Made with
   love 🤍" caption. Tapping Open shrinks the button, a soft golden glow
-  spreads and fades to black over ~1 second, then the loading line appears.
-- **Page 2** — a frosted glass card slides up from the bottom as the
-  starfield softly blurs behind it, with a small hanging star swaying above.
-  The letter types itself out with natural pauses, then "Continue" fades in.
-- **Page 3 (Memories)** — each photo appears as a polaroid-style card,
-  gently tilted, sliding in from alternating sides with a slow Ken Burns
-  zoom and a caption + tiny heart underneath, ~5-6 seconds each, with dot
-  pagination up top. "Keep going" fades in after the last one.
-- **Page 4** — the background slowly brightens, hundreds of tiny particles
-  drift together into a glowing heart above the title, fireworks crackle,
-  balloons rise, confetti falls, "Happy Birthday, Didi ❤️" glows in gold,
-  and the gently-pulsing call button sits fixed at the bottom.
+  spreads and fades to black, then the loading line appears.
+- **Page 2** — a cream envelope with a wax seal sits waiting. Tapping it
+  plays a soft paper sound, the seal breaks, the flap opens, the letter
+  slides out, and a frosted glass card unfolds with the message typing
+  itself out. Music nudges slightly louder for this moment.
+- **Page 3 (Memories)** — swipe left for the next photo, right to go back
+  (tap the left/right edges works too on desktop). Each one is a tilted
+  polaroid card with a slow Ken Burns zoom and a caption + tiny heart
+  underneath, with dot pagination and a "Swipe to relive memories..." hint.
+  "Keep going" appears once you've reached the last photo.
+- **Page 4** — a wrapped gift box sits shaking gently, waiting to be tapped.
+  On tap: the ribbon unties, the lid pops open, golden light bursts out,
+  and then the background brightens, hundreds of particles assemble into a
+  glowing heart above the title, fireworks crackle, balloons rise, confetti
+  falls, and "Happy Birthday, Didi ❤️" glows in gold. After about 5 seconds
+  everything settles quietly — the fireworks and balloons fade, the stars
+  become visible again, and the line beneath the title softens to "I love
+  you." The call button stays gently pulsing at the bottom throughout.
 
 ### About the sound effects
 
-Fireworks crackle, balloon pops, the celebration chime, and the soft notes
-on each button tap are all **generated in the browser with the Web Audio
-API** — nothing to upload for those. The only audio file needed is the
-background music track described above, which loops softly under
-everything.
+Fireworks crackle, balloon pops, the paper-unfolding sound, the celebration
+chime, and the soft notes on each tap are all **generated in the browser
+with the Web Audio API** — nothing to upload for those. The only audio file
+needed is the background music track described above, which loops softly
+under everything.
 
 ### If photos or music still don't show up after uploading
 

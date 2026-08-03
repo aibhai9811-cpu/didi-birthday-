@@ -80,6 +80,17 @@
     </defs>
   </svg>
 
+  <div class="envelope-stage" id="envelopeStage">
+    <button class="envelope" id="envelopeBtn" aria-label="Tap to open the letter">
+      <span class="envelope-shadow"></span>
+      <span class="envelope-letter-peek"></span>
+      <span class="envelope-body"></span>
+      <span class="envelope-flap"></span>
+      <span class="envelope-seal">♥</span>
+    </button>
+    <p class="envelope-hint reveal">Tap the envelope to open it</p>
+  </div>
+
   <div class="act-inner letter-inner letter-card" id="letterCard">
     <div class="letter-mark" aria-hidden="true">☾</div>
     <p class="type-text" id="typeText"></p>
@@ -99,6 +110,7 @@
     </div>
   </div>
   <div class="gallery-dots" id="galleryDots" aria-hidden="true"></div>
+  <p class="gallery-hint">Swipe to relive memories&hellip;</p>
   <button id="toFinaleBtn" class="ghost-btn is-hidden gallery-continue">
     <span>Keep going</span>
     <span class="arrow">→</span>
@@ -112,9 +124,21 @@
   <div class="hearts-field" id="heartsField" aria-hidden="true"></div>
   <div class="balloon-field" id="balloonField" aria-hidden="true"></div>
 
-  <div class="act-inner finale-inner">
-    <h1 class="finale-title reveal">Happy Birthday,<br><span class="didi-word">Didi</span> <span class="heart-emoji">❤️</span></h1>
-    <p class="finale-sub reveal">I miss you more than I say.</p>
+  <div class="gift-stage" id="giftStage">
+    <button class="gift-box" id="giftBox" aria-label="Tap to open your gift">
+      <span class="gift-glow"></span>
+      <span class="gift-lid"></span>
+      <span class="gift-ribbon-v"></span>
+      <span class="gift-ribbon-h"></span>
+      <span class="gift-bow">🎀</span>
+      <span class="gift-body"></span>
+    </button>
+    <p class="gift-hint reveal">Tap the gift</p>
+  </div>
+
+  <div class="act-inner finale-inner" id="finaleInner">
+    <h1 class="finale-title">Happy Birthday,<br><span class="didi-word">Didi</span> <span class="heart-emoji">❤️</span></h1>
+    <p class="finale-sub" id="finaleSub">I miss you more than I say.</p>
   </div>
 </section>
 

@@ -177,6 +177,31 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     osc.stop(now + duration + 0.05);
   }
 
+  function playPaperSound() {
+    const ac = getAudioCtx();
+    if (!ac) return;
+    const now = ac.currentTime;
+    const bufferSize = ac.sampleRate * 0.55;
+    const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const env = Math.sin((i / bufferSize) * Math.PI);
+      data[i] = (Math.random() * 2 - 1) * env * 0.6;
+    }
+    const noise = ac.createBufferSource();
+    noise.buffer = buffer;
+    const hp = ac.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 900;
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.28, now + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    noise.connect(hp).connect(gain).connect(ac.destination);
+    noise.start(now);
+    noise.stop(now + 0.55);
+  }
+
   function playCrackle() {
     const ac = getAudioCtx();
     if (!ac) return;
@@ -319,24 +344,20 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     screenFlash.classList.add('is-active');
     attemptMusicStart();
 
-    setTimeout(() => {
-      loader.classList.add('is-active');
-    }, 550);
-
-    setTimeout(() => {
-      screenFlash.classList.remove('is-active');
-    }, 1050);
-
+    setTimeout(() => { loader.classList.add('is-active'); }, 550);
+    setTimeout(() => { screenFlash.classList.remove('is-active'); }, 1050);
     setTimeout(() => {
       loader.classList.remove('is-active');
       showAct(2);
-      startTypewriter();
     }, 2550);
   });
 
   /* ============================================================
-     PAGE 2 — typewriter letter
+     PAGE 2 — envelope, then the letter types itself out
   ============================================================ */
+  const envelopeStage = document.getElementById('envelopeStage');
+  const envelopeBtn = document.getElementById('envelopeBtn');
+  const letterCard = document.getElementById('letterCard');
   const typeText = document.getElementById('typeText');
   const continueBtn = document.getElementById('continueBtn');
 
@@ -371,6 +392,36 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     tick();
   }
 
+  let envelopeOpened = false;
+  envelopeBtn.addEventListener('click', () => {
+    if (envelopeOpened) return;
+    envelopeOpened = true;
+    vibrate([8, 30, 10]);
+    playPaperSound();
+    envelopeBtn.classList.add('is-cracking');
+
+    setTimeout(() => { envelopeBtn.classList.add('is-open'); }, 320);
+
+    // nudge the music a touch louder for this personal moment
+    if (!bgMusic.paused) {
+      const targetVol = Math.min(bgMusic.volume + 0.18, 0.85);
+      const startVol = bgMusic.volume;
+      const steps = 12;
+      let s = 0;
+      const rampId = setInterval(() => {
+        s++;
+        bgMusic.volume = startVol + (targetVol - startVol) * (s / steps);
+        if (s >= steps) clearInterval(rampId);
+      }, 60);
+    }
+
+    setTimeout(() => {
+      envelopeStage.classList.add('is-hidden');
+      letterCard.classList.add('is-shown');
+      startTypewriter();
+    }, 1050);
+  });
+
   continueBtn.addEventListener('click', () => {
     vibrate(12);
     playNote(587, 0.45);
@@ -379,16 +430,15 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   });
 
   /* ============================================================
-     PAGE 3 — polaroid-story gallery
+     PAGE 3 — swipeable polaroid-story gallery
   ============================================================ */
+  const galleryStage = document.getElementById('galleryStage');
   const slidesEl = document.getElementById('slides');
   const dotsEl = document.getElementById('galleryDots');
   const toFinaleBtn = document.getElementById('toFinaleBtn');
 
   let galleryBuilt = false;
-  let galleryTimer = null;
   let currentSlide = 0;
-  const SLIDE_DURATION = 5500;
 
   function buildGallery() {
     PHOTO_DATA.forEach((photo, idx) => {
@@ -431,7 +481,6 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   function renderSlide(idx) {
     const slides = slidesEl.querySelectorAll('.slide');
     const dots = dotsEl.querySelectorAll('span');
-
     slides.forEach((s, i) => {
       s.classList.toggle('is-active', i === idx);
       s.classList.toggle('is-prev', i === idx - 1);
@@ -440,15 +489,15 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       d.classList.toggle('done', i < idx);
       d.classList.toggle('active', i === idx);
     });
+    if (idx === PHOTO_DATA.length - 1) {
+      toFinaleBtn.classList.remove('is-hidden');
+    }
   }
 
-  function nextSlide() {
-    currentSlide++;
-    if (currentSlide >= PHOTO_DATA.length) {
-      clearInterval(galleryTimer);
-      toFinaleBtn.classList.remove('is-hidden');
-      return;
-    }
+  function goToSlide(idx) {
+    if (idx < 0 || idx >= PHOTO_DATA.length || idx === currentSlide) return;
+    currentSlide = idx;
+    vibrate(8);
     renderSlide(currentSlide);
   }
 
@@ -456,20 +505,55 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     if (!galleryBuilt) buildGallery();
     currentSlide = 0;
     renderSlide(0);
-    clearInterval(galleryTimer);
-    galleryTimer = setInterval(nextSlide, SLIDE_DURATION);
   }
+
+  // swipe navigation
+  let touchStartX = 0, touchStartY = 0, touchActive = false;
+  galleryStage.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchActive = true;
+  }, { passive: true });
+
+  galleryStage.addEventListener('touchend', (e) => {
+    if (!touchActive) return;
+    touchActive = false;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return;
+    if (dx < 0) {
+      goToSlide(currentSlide + 1);
+    } else {
+      goToSlide(currentSlide - 1);
+    }
+  }, { passive: true });
+
+  // click/tap zones for non-touch devices
+  galleryStage.addEventListener('click', (e) => {
+    if (touchActive) return;
+    const rect = galleryStage.getBoundingClientRect();
+    const relX = (e.clientX - rect.left) / rect.width;
+    if (relX < 0.4) {
+      goToSlide(currentSlide - 1);
+    } else if (relX > 0.6) {
+      goToSlide(currentSlide + 1);
+    }
+  });
 
   toFinaleBtn.addEventListener('click', () => {
     vibrate(14);
     playNote(784, 0.55);
     showAct(4);
-    startFinale();
   });
 
   /* ============================================================
-     PAGE 4 — heart-particle formation + confetti + hearts + balloons
+     PAGE 4 — gift box, then heart-particle formation + celebration
   ============================================================ */
+  const giftStage = document.getElementById('giftStage');
+  const giftBox = document.getElementById('giftBox');
+  const finaleInner = document.getElementById('finaleInner');
+  const finaleSub = document.getElementById('finaleSub');
+
   const heartCanvas = document.getElementById('heartCanvas');
   const hctx = heartCanvas.getContext('2d');
   let heartTargets = [];
@@ -493,10 +577,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       const angle = (Math.PI * 2 * i) / count;
       const hx = 16 * Math.pow(Math.sin(angle), 3);
       const hy = 13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle);
-      heartTargets.push({
-        x: cx + hx * scale,
-        y: cy - hy * scale,
-      });
+      heartTargets.push({ x: cx + hx * scale, y: cy - hy * scale });
     }
   }
 
@@ -571,13 +652,9 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       const angle = (Math.PI * 2 * i) / count + Math.random() * 0.2;
       const speed = Math.random() * 3.2 + 1.6;
       confettiPieces.push({
-        type: 'spark',
-        x, y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        r: Math.random() * 1.8 + 1.2,
-        color,
-        life: 1,
+        type: 'spark', x, y,
+        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+        r: Math.random() * 1.8 + 1.2, color, life: 1,
         decay: Math.random() * 0.012 + 0.014,
       });
     }
@@ -588,9 +665,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
     confettiPieces.forEach(p => {
       if (p.type === 'confetti') {
-        p.y += p.speed;
-        p.x += p.drift;
-        p.rotation += p.rotSpeed;
+        p.y += p.speed; p.x += p.drift; p.rotation += p.rotSpeed;
         cctx.save();
         cctx.translate(p.x, p.y);
         cctx.rotate((p.rotation * Math.PI) / 180);
@@ -599,11 +674,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
         cctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
         cctx.restore();
       } else if (p.type === 'spark') {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.045;
-        p.vx *= 0.985;
-        p.life -= p.decay;
+        p.x += p.vx; p.y += p.vy; p.vy += 0.045; p.vx *= 0.985; p.life -= p.decay;
         cctx.save();
         cctx.globalAlpha = Math.max(p.life, 0);
         cctx.fillStyle = p.color;
@@ -615,9 +686,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
         cctx.restore();
       }
     });
-    confettiPieces = confettiPieces.filter(p =>
-      p.type === 'confetti' ? p.y < confettiCanvas.height + 30 : p.life > 0
-    );
+    confettiPieces = confettiPieces.filter(p => p.type === 'confetti' ? p.y < confettiCanvas.height + 30 : p.life > 0);
     if (confettiRunning) requestAnimationFrame(drawConfetti);
   }
 
@@ -641,8 +710,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     wrap.style.setProperty('--sway2', (-(Math.random() * 40 + 10)) + 'px');
     wrap.style.animationDuration = (Math.random() * 4 + 9) + 's';
     wrap.style.width = (Math.random() * 16 + 40) + 'px';
-    wrap.innerHTML = balloonSvg(BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)])
-      + '<span class="string"></span>';
+    wrap.innerHTML = balloonSvg(BALLOON_COLORS[Math.floor(Math.random() * BALLOON_COLORS.length)]) + '<span class="string"></span>';
     balloonField.appendChild(wrap);
     if (withSound) setTimeout(() => playPop(), 200 + Math.random() * 300);
     setTimeout(() => wrap.remove(), 14000);
@@ -676,6 +744,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     vibrate([10, 40, 10, 40, 30]);
 
     document.body.classList.add('is-bright');
+    finaleInner.classList.add('is-shown');
 
     resizeHeartCanvas();
     seedHeartParticles();
@@ -695,20 +764,17 @@ Bas shayad main kabhi bol hi nahi paaya...`;
         const x = confettiCanvas.width * (0.2 + Math.random() * 0.6);
         const y = confettiCanvas.height * (0.45 + Math.random() * 0.3);
         spawnFirework(x, y);
-      }, 900 + i * (prefersReducedMotion ? 500 : 380) + Math.random() * 200);
+      }, 200 + i * (prefersReducedMotion ? 500 : 380) + Math.random() * 200);
     }
-    setTimeout(() => { confettiRunning = false; }, 7500);
+    setTimeout(() => { confettiRunning = false; }, 4800);
 
     if (!prefersReducedMotion) {
       heartInterval = setInterval(spawnHeart, 600);
-      setTimeout(() => clearInterval(heartInterval), 18000);
-
       let balloonCount = 0;
       balloonInterval = setInterval(() => {
         balloonCount++;
         spawnBalloon(balloonCount % 3 === 0);
       }, 900);
-      setTimeout(() => clearInterval(balloonInterval), 16000);
     } else {
       spawnBalloon(false);
       spawnBalloon(false);
@@ -717,7 +783,48 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     setTimeout(() => {
       callBar.classList.add('is-shown');
       callBtn.classList.add('is-pulsing');
-    }, prefersReducedMotion ? 600 : 2000);
+    }, prefersReducedMotion ? 400 : 1400);
+
+    // ---- quiet ending: after 5 seconds, everything settles ----
+    setTimeout(() => {
+      clearInterval(heartInterval);
+      clearInterval(balloonInterval);
+
+      heartsField.classList.add('is-fading');
+      balloonField.classList.add('is-fading');
+      heartCanvas.classList.add('is-settled');
+      document.body.classList.remove('is-bright');
+
+      finaleSub.classList.add('is-fading');
+      setTimeout(() => {
+        finaleSub.textContent = 'I love you.';
+        finaleSub.classList.remove('is-fading');
+      }, 650);
+
+      setTimeout(() => {
+        confettiRunning = false;
+        cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        confettiPieces = [];
+      }, 900);
+    }, prefersReducedMotion ? 1600 : 5000);
+  }
+
+  giftBox.addEventListener('click', () => {
+    vibrate([12, 30, 10, 30, 40]);
+    getAudioCtx();
+    giftBox.classList.add('is-opening');
+    playPaperSound();
+    setTimeout(() => playChime(), 250);
+
+    setTimeout(() => {
+      giftStage.classList.add('is-hidden');
+      showFinaleContent();
+    }, 900);
+  });
+
+  function showFinaleContent() {
+    showAct(4);
+    startFinale();
   }
 
   /* ============================================================

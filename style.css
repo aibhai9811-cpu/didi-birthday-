@@ -315,7 +315,7 @@ body.is-bright .glow{ opacity: 0.55; }
   margin: 0; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--ink-faint);
   animation-delay: 0.5s;
 }
-.envelope-hint.is-hidden{ opacity: 0; transition: opacity 0.5s var(--ease-out); }
+.envelope-hint.is-hidden{ animation: none; opacity: 0; transition: opacity 0.5s var(--ease-out); }
 
 /* ============ letter ============ */
 .letter-inner{ gap: 10px; }
@@ -372,7 +372,7 @@ body.is-bright .glow{ opacity: 0.55; }
 .letter-card.is-unfolded .fold-3{ transform: rotateX(-115deg); box-shadow: 0 -6px 14px -6px rgba(0,0,0,0.3); transition-delay: 0.44s; }
 
 .letter-mark{ font-size: 1.6rem; color: #8a6a2e; opacity: 0.7; margin-bottom: 6px; }
-.type-text{ font-family: var(--display); font-weight: 400; font-size: clamp(1.1rem, 3.4vw, 1.6rem); line-height: 1.85; color: #2f2717; white-space: pre-wrap; min-height: 38vh; text-align: left; max-width: 620px; }
+.type-text{ font-family: var(--display); font-weight: 400; font-size: clamp(1.1rem, 3.4vw, 1.6rem); line-height: 1.85; color: #2f2717; white-space: pre-wrap; text-align: left; max-width: 620px; }
 .type-text .caret{ display: inline-block; width: 2px; height: 1em; background: #8a6a2e; margin-left: 2px; vertical-align: -0.15em; animation: blink 0.9s steps(1) infinite; }
 @keyframes blink{ 50%{ opacity: 0; } }
 .letter-signature{
@@ -569,7 +569,7 @@ body.is-bright .glow{ opacity: 0.55; }
 }
 
 .gift-hint{ margin: 0; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--ink-faint); animation-delay: 0.4s; }
-.gift-hint.is-hidden{ opacity: 0; transition: opacity 0.5s var(--ease-out); }
+.gift-hint.is-hidden{ animation: none; opacity: 0; transition: opacity 0.5s var(--ease-out); }
 
 .finale-inner{ position: relative; z-index: 3; gap: 22px; padding-bottom: 110px; }
 .finale-title{
@@ -655,7 +655,7 @@ body.is-quiet-ending .finale-sub{
    ============================================================ */
 @media (max-width: 640px){
   .act{ padding: 7vh 7vw; }
-  .type-text{ text-align: left; min-height: 44vh; }
+  .type-text{ text-align: left; }
   .call-btn{ padding: 16px 26px; font-size: 0.95rem; }
   .music-toggle{ bottom: 16px; right: 16px; }
   .moon{ top: 5vh; left: 8vw; width: 15vw; }

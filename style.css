@@ -320,6 +320,7 @@ body.is-bright .glow{ opacity: 0.55; }
 /* ============ letter ============ */
 .letter-inner{ gap: 10px; }
 .letter-card{
+  min-height: 100%;
   padding: 38px 32px 30px; border-radius: 3px 12px 5px 10px;
   background:
     radial-gradient(circle at 12% 8%, rgba(0,0,0,0.05), transparent 40%),

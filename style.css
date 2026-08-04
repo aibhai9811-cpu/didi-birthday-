@@ -659,18 +659,22 @@ body.is-quiet-ending .finale-sub{
   .gift-box{ animation: none; }
 }
 
-/* Keeps the letter strictly inside the envelope bounds until pulled */
+/* Completely safe, no-clip-path masking */
 .envelope-pocket {
   position: absolute;
-  inset: 0;
+  left: 0; right: 0; bottom: 0; top: -300%;
+  overflow: hidden;
   z-index: 1;
   pointer-events: none;
-  /* Clips the bottom perfectly, but leaves the top completely open for the pullout */
-  clip-path: inset(-200% -20% 0 -20%); 
-  transition: clip-path 0.1s linear;
 }
 .envelope-pocket.is-free {
-  clip-path: inset(-200% -20% -200% -20%);
+  overflow: visible;
+  z-index: 20; /* Keep it clearly above everything once out */
+}
+.pocket-inner {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 25%; /* 100% of envelope height since pocket is 400% tall */
 }
 
 /* Fades the envelope away without hiding the parent stage (saving the letter) */

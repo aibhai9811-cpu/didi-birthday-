@@ -314,6 +314,519 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       }, 60 + e * (70 + Math.random() * 60));
     }
   }
+  
+  function playFireworkSound() {
+    const ac = getAudioCtx();
+    if (!ac) return;
+    const now = ac.currentTime;
+
+    // 1. The Heavy Boom (Low frequency drop)
+    const boomOsc = ac.createOscillator();
+    boomOsc.type = 'sine';
+    boomOsc.frequency.setValueAtTime(160, now);
+    boomOsc.frequency.exponentialRampToValueAtTime(20, now + 0.6);
+    const boomGain = ac.createGain();
+    boomGain.gain.setValueAtTime(0.8, now);
+    boomGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+    boomOsc.connect(boomGain).connect(ac.destination);
+    boomOsc.start(now);
+    boomOsc.stop(now + 1.1);
+
+    // 2. The Initial Snap/Crack
+    const noiseBuffer = ac.createBuffer(1, ac.sampleRate * 0.8, ac.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / data.length, 3);
+    }
+    const noise = ac.createBufferSource();
+    noise.buffer = noiseBuffer;
+    const filter = ac.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 800;
+    const noiseGain = ac.createGain();
+    noiseGain.gain.setValueAtTime(0.6, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+    noise.connect(filter).connect(noiseGain).connect(ac.destination);
+    noise.start(now);
+    noise.stop(now + 0.9);
+
+    // 3. Keep the original crackles triggering for trailing sparks
+    playCrackle();
+  }
+
+  function playPop() {
+    const ac = getAudioCtx();
+    if (!ac) return;
+    const now = ac.currentTime;
+    const osc = ac.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(520, now);
+    osc.frequency.exponentialRampToValueAtTime(90, now + 0.16);
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    osc.connect(gain).connect(ac.destination);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  }
+
+  function playChime() {
+    const ac = getAudioCtx();
+    if (!ac) return;
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((freq, i) => {
+      const start = ac.currentTime + i * 0.14;
+      const osc = ac.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      const gain = ac.createGain();
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.22, start + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.9);
+      osc.connect(gain).connect(ac.destination);
+      osc.start(start);
+      osc.stop(start + 0.95);
+    });
+  }
+
+  /* ============================================================
+     Act navigation
+  ============================================================ */
+  const acts = Array.from(document.querySelectorAll('.act'));
+  function showAct(n) {
+    acts.forEach(a => a.classList.toggle('is-active', a.dataset.act === String(n)));
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    document.body.classList.toggle('blur-stars', n === 2);
+  }
+  showAct(1);
+
+  function vibrate(pattern) {
+    if ('vibrate' in navigator) {
+      try { navigator.vibrate(pattern); } catch (e) { /* no-op */ }
+    }
+  }
+
+  /* ============================================================
+     PAGE 1 — typewriter hero line
+  ============================================================ */
+  const heroTypeText = document.getElementById('heroTypeText');
+
+  function startHeroTypewriter() {
+    if (prefersReducedMotion) {
+      heroTypeText.textContent = HERO_TEXT;
+      return;
+    }
+    const caret = document.createElement('span');
+    caret.className = 'type-caret';
+    let i = 0;
+    const speed = 34;
+    function tick() {
+      if (i <= HERO_TEXT.length) {
+        heroTypeText.textContent = HERO_TEXT.slice(0, i);
+        heroTypeText.appendChild(caret);
+        i++;
+        setTimeout(tick, speed);
+      } else {
+        setTimeout(() => caret.remove(), 900);
+      }
+    }
+    setTimeout(tick, 300);
+  }
+  startHeroTypewriter();
+
+  /* ============================================================
+     PAGE 1 -> screen flash -> loader -> PAGE 2
+  ============================================================ */
+  const openBtn = document.getElementById('openBtn');
+  const loader = document.getElementById('loader');
+  const screenFlash = document.getElementById('screenFlash');
+
+  openBtn.addEventListener('click', () => {
+    vibrate(18);
+    getAudioCtx();
+    playNote(660, 0.5);
+    openBtn.disabled = true;
+    openBtn.classList.add('is-tapped');
+    document.body.classList.add('stars-converging');
+    attemptMusicStart();
+
+    setTimeout(() => { screenFlash.classList.add('is-active'); }, 350);
+    setTimeout(() => { loader.classList.add('is-active'); }, 900);
+    setTimeout(() => { screenFlash.classList.remove('is-active'); }, 1400);
+    setTimeout(() => {
+      loader.classList.remove('is-active');
+      document.body.classList.remove('stars-converging');
+      showAct(2);
+    }, 2900);
+  });
+
+  /* ============================================================
+     PAGE 2 — envelope, then the letter types itself out
+  ============================================================ */
+  const envelopeStage = document.getElementById('envelopeStage');
+  const envelope3d = document.getElementById('envelope3d');
+  const envelopePocket = document.getElementById('envelopePocket');
+  const envelopeBtn = document.getElementById('envelopeBtn');
+  const envelopeHint = document.getElementById('envelopeHint');
+  const letterPullout = document.getElementById('letterPullout');
+  const letterCard = document.getElementById('letterCard');
+  const typeText = document.getElementById('typeText');
+  const continueBtn = document.getElementById('continueBtn');
+  const letterSignature = document.getElementById('letterSignature');
+
+  function startTypewriter() {
+    typeText.textContent = '';
+    const caret = document.createElement('span');
+    caret.className = 'caret';
+
+    if (prefersReducedMotion) {
+      typeText.textContent = LETTER_TEXT;
+      letterSignature.classList.add('is-shown');
+      continueBtn.classList.remove('is-hidden');
+      return;
+    }
+
+    let i = 0;
+    const speed = 28;
+    function tick() {
+      if (i <= LETTER_TEXT.length) {
+        typeText.textContent = LETTER_TEXT.slice(0, i);
+        typeText.appendChild(caret);
+        i++;
+        const ch = LETTER_TEXT[i - 1];
+        const pause = (ch === '.' || ch === '\n') ? speed * 6 : speed;
+        setTimeout(tick, pause);
+      } else {
+        setTimeout(() => {
+          caret.remove();
+          letterSignature.classList.add('is-shown');
+          setTimeout(() => continueBtn.classList.remove('is-hidden'), 500);
+        }, 400);
+      }
+    }
+    tick();
+  }
+
+  function nudgeMusicLouder() {
+    if (bgMusic.paused) return;
+    const targetVol = Math.min(bgMusic.volume + 0.18, 0.85);
+    const startVol = bgMusic.volume;
+    const steps = 12;
+    let s = 0;
+    const rampId = setInterval(() => {
+      s++;
+      bgMusic.volume = startVol + (targetVol - startVol) * (s / steps);
+      if (s >= steps) clearInterval(rampId);
+    }, 60);
+  }
+
+  function beginUnfoldAndType() {
+    envelopeStage.classList.add('is-envelope-hidden');
+    letterPullout.classList.add('is-centered');
+    letterCard.classList.add('is-unfolded');
+    setTimeout(startTypewriter, 900);
+  }
+
+  function pullLetterFullyOut() {
+    letterPullout.classList.remove('is-peeking', 'is-dragging');
+    letterPullout.classList.add('is-out');
+    envelopePocket.classList.add('is-free');
+    playPaperSound();
+    setTimeout(beginUnfoldAndType, 950);
+  }
+
+  let envelopeOpened = false;
+  let dragStartY = 0;
+  let dragCurrentY = 0;
+  let dragging = false;
+  let autoPullTimer = null;
+  const PEEK_TRANSLATE = -34; // matches .is-peeking in %, used for drag math
+  const PULL_THRESHOLD = 55; // px of upward drag needed to fully pull the letter out
+
+  function onDragStart(e) {
+    if (!letterPullout.classList.contains('is-peeking')) return;
+    dragging = true;
+    clearTimeout(autoPullTimer);
+    dragStartY = (e.  const ctx = starCanvas.getContext('2d');
+  let stars = [];
+  let w, h, dpr;
+
+  function resizeCanvas() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = window.innerWidth;
+    h = window.innerHeight;
+    starCanvas.width = w * dpr;
+    starCanvas.height = h * dpr;
+    starCanvas.style.width = w + 'px';
+    starCanvas.style.height = h + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    seedStars();
+  }
+
+  function seedStars() {
+    const count = Math.round((w * h) / 7000);
+    stars = new Array(count).fill(0).map(() => {
+      const isBig = Math.random() > 0.88;
+      return {
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: isBig ? Math.random() * 1.6 + 1.1 : Math.random() * 1.1 + 0.3,
+        baseAlpha: Math.random() * 0.35 + 0.25,
+        twinkleAmp: Math.random() * 0.5 + 0.35,
+        twinkleSpeed: Math.random() * 0.03 + 0.012,
+        phase: Math.random() * Math.PI * 2,
+        drift: Math.random() * 0.05 + 0.01,
+        parallax: Math.random() * 0.4 + 0.1,
+        hue: Math.random() > 0.82 ? 'gold' : 'white',
+        glow: isBig,
+      };
+    });
+  }
+
+  let t = 0;
+  let parallaxX = 0, parallaxY = 0;
+  let shootingStars = [];
+
+  function scheduleShootingStar() {
+    if (prefersReducedMotion) return;
+    const delay = (Math.random() * 10 + 15) * 1000; // 15-25s
+    setTimeout(() => {
+      const startX = Math.random() * w * 0.6 + w * 0.1;
+      const startY = Math.random() * h * 0.25;
+      const angle = Math.PI / 4 + Math.random() * 0.3;
+      shootingStars.push({
+        x: startX, y: startY,
+        vx: Math.cos(angle) * 11, vy: Math.sin(angle) * 11,
+        life: 1, trail: [],
+      });
+      scheduleShootingStar();
+    }, delay);
+  }
+  scheduleShootingStar();
+
+  function drawShootingStars() {
+    shootingStars.forEach(s => {
+      s.trail.unshift({ x: s.x, y: s.y });
+      if (s.trail.length > 14) s.trail.pop();
+      s.x += s.vx;
+      s.y += s.vy;
+      s.life -= 0.02;
+
+      ctx.beginPath();
+      for (let i = 0; i < s.trail.length; i++) {
+        const pt = s.trail[i];
+        const a = (1 - i / s.trail.length) * Math.max(s.life, 0) * 0.9;
+        ctx.fillStyle = `rgba(255,255,255,${a})`;
+        const size = (1 - i / s.trail.length) * 1.8;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+    shootingStars = shootingStars.filter(s => s.life > 0 && s.x < w + 50 && s.y < h + 50);
+  }
+
+  function drawStars() {
+    ctx.clearRect(0, 0, w, h);
+    t += 1;
+    for (const s of stars) {
+      const alpha = s.baseAlpha + Math.sin(t * s.twinkleSpeed + s.phase) * s.twinkleAmp;
+      const clamped = Math.min(Math.max(alpha, 0.05), 1);
+      const color = s.hue === 'gold' ? '232,194,122' : '255,255,255';
+      const px = s.x + parallaxX * s.parallax;
+      const py = s.y + parallaxY * s.parallax;
+
+      if (s.glow) {
+        const grad = ctx.createRadialGradient(px, py, 0, px, py, s.r * 5);
+        grad.addColorStop(0, `rgba(${color},${clamped * 0.5})`);
+        grad.addColorStop(1, `rgba(${color},0)`);
+        ctx.beginPath();
+        ctx.fillStyle = grad;
+        ctx.arc(px, py, s.r * 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(${color},${clamped})`;
+      ctx.arc(px, py, s.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (!prefersReducedMotion) {
+        s.y -= s.drift;
+        if (s.y < -4) { s.y = h + 4; s.x = Math.random() * w; }
+      }
+    }
+    if (shootingStars.length) drawShootingStars();
+    requestAnimationFrame(drawStars);
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas, { passive: true });
+  drawStars();
+
+  /* ============================================================
+     Cursor glow + subtle star parallax (desktop only)
+  ============================================================ */
+  const cursorGlow = document.getElementById('cursor-glow');
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    document.addEventListener('mousemove', (e) => {
+      document.body.classList.add('cursor-ready');
+      cursorGlow.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+      parallaxX = (e.clientX / w - 0.5) * -18;
+      parallaxY = (e.clientY / h - 0.5) * -18;
+    }, { passive: true });
+  }
+
+  /* ============================================================
+     Fireflies — soft glowing particles drifting upward
+  ============================================================ */
+  const fireflyField = document.getElementById('fireflies');
+  function spawnFireflies(count) {
+    for (let i = 0; i < count; i++) {
+      const f = document.createElement('span');
+      f.className = 'firefly';
+      f.style.left = Math.random() * 100 + '%';
+      f.style.top = Math.random() * 100 + '%';
+      f.style.setProperty('--fx1', (Math.random() * 50 - 25) + 'px');
+      f.style.setProperty('--fy1', (-(Math.random() * 40 + 20)) + 'px');
+      f.style.setProperty('--fx2', (Math.random() * 50 - 25) + 'px');
+      f.style.setProperty('--fy2', (-(Math.random() * 60 + 40)) + 'px');
+      f.style.setProperty('--fx3', (Math.random() * 50 - 25) + 'px');
+      f.style.setProperty('--fy3', (-(Math.random() * 80 + 60)) + 'px');
+      f.style.setProperty('--fx4', (Math.random() * 40 - 20) + 'px');
+      f.style.setProperty('--fy4', (-(Math.random() * 110 + 90)) + 'px');
+      const dur = Math.random() * 10 + 14;
+      f.style.animationDuration = dur + 's, ' + (dur * 0.5) + 's';
+      f.style.animationDelay = (-Math.random() * dur) + 's, ' + (-Math.random() * dur) + 's';
+      fireflyField.appendChild(f);
+    }
+  }
+  if (!prefersReducedMotion) spawnFireflies(16);
+
+  /* ============================================================
+     Synthesized sound effects — no audio files needed
+  ============================================================ */
+  let actx = null;
+  function getAudioCtx() {
+    if (!actx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) actx = new AC();
+    }
+    if (actx && actx.state === 'suspended') actx.resume();
+    return actx;
+  }
+
+  function playNote(freq, duration) {
+    const ac = getAudioCtx();
+    if (!ac) return;
+    const now = ac.currentTime;
+    const osc = ac.createOscillator();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.16, now + 0.04);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+    osc.connect(gain).connect(ac.destination);
+    osc.start(now);
+    osc.stop(now + duration + 0.05);
+  }
+
+  function playPaperSound() {
+    const ac = getAudioCtx();
+    if (!ac) return;
+    const now = ac.currentTime;
+    const bufferSize = ac.sampleRate * 0.55;
+    const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const env = Math.sin((i / bufferSize) * Math.PI);
+      data[i] = (Math.random() * 2 - 1) * env * 0.6;
+    }
+    const noise = ac.createBufferSource();
+    noise.buffer = buffer;
+    const hp = ac.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 900;
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.28, now + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+    noise.connect(hp).connect(gain).connect(ac.destination);
+    noise.start(now);
+    noise.stop(now + 0.55);
+  }
+
+  function playPageTurn() {
+    const ac = getAudioCtx();
+    if (!ac) return;
+    const now = ac.currentTime;
+    const bufferSize = ac.sampleRate * 0.22;
+    const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      const env = Math.pow(1 - i / bufferSize, 1.6);
+      data[i] = (Math.random() * 2 - 1) * env;
+    }
+    const noise = ac.createBufferSource();
+    noise.buffer = buffer;
+    const hp = ac.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 1400;
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.16, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+    noise.connect(hp).connect(gain).connect(ac.destination);
+    noise.start(now);
+    noise.stop(now + 0.25);
+  }
+
+  function playCrackle() {
+    const ac = getAudioCtx();
+    if (!ac) return;
+    const now = ac.currentTime;
+    const bufferSize = ac.sampleRate * 0.35;
+    const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2.2);
+    }
+    const noise = ac.createBufferSource();
+    noise.buffer = buffer;
+
+    const bandpass = ac.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.value = 1800 + Math.random() * 2200;
+    bandpass.Q.value = 0.8;
+
+    const gain = ac.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.5, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+    noise.connect(bandpass).connect(gain).connect(ac.destination);
+    noise.start(now);
+    noise.stop(now + 0.36);
+
+    const echoes = Math.floor(Math.random() * 2) + 1;
+    for (let e = 0; e < echoes; e++) {
+      setTimeout(() => {
+        const ac2 = getAudioCtx();
+        if (!ac2) return;
+        const n2 = ac2.currentTime;
+        const osc = ac2.createOscillator();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1400 + Math.random() * 1200, n2);
+        const g2 = ac2.createGain();
+        g2.gain.setValueAtTime(0.18, n2);
+        g2.gain.exponentialRampToValueAtTime(0.001, n2 + 0.08);
+        osc.connect(g2).connect(ac2.destination);
+        osc.start(n2);
+        osc.stop(n2 + 0.09);
+      }, 60 + e * (70 + Math.random() * 60));
+    }
+  }
 
   function playPop() {
     const ac = getAudioCtx();

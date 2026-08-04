@@ -676,4 +676,18 @@ body.is-quiet-ending .finale-sub{
   }
   .polaroid-photo img{ animation: none; }
   .gift-box{ animation: none; }
+   /* --- FOOLPROOF GIFT TAP FIX --- */
+.gift-stage {
+  z-index: 99 !important;
+}
+
+.gift-tap {
+  z-index: 99 !important;
+  /* Some mobile previewers ignore taps on 100% transparent objects. 
+     This gives it 1% opacity—invisible to the eye, but solid for the phone to touch. */
+  background: rgba(255, 255, 255, 0.01) !important; 
+}
+
+.finale-inner {
+  pointer-events: none !important;
 }

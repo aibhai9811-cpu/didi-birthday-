@@ -424,7 +424,6 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   /* ============================================================
      PAGE 2 — envelope, then the letter types itself out
   ============================================================ */
-  const envelopeStage = document.getElementById('envelopeStage');
   const envelope3d = document.getElementById('envelope3d');
   const envelopeBtn = document.getElementById('envelopeBtn');
   const envelopeHint = document.getElementById('envelopeHint');
@@ -481,7 +480,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   }
 
   function beginUnfoldAndType() {
-    envelopeStage.classList.add('is-hidden');
+    envelope3d.classList.add('is-emptied');
     letterCard.classList.add('is-unfolded');
     // typewriter starts once the last fold has finished opening (matches its transition-delay + duration)
     setTimeout(startTypewriter, 900);

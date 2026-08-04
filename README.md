@@ -69,43 +69,42 @@ Since you already build on GitHub with the web UI + Pages:
 
 No build step, no dependencies — it just works once the files are uploaded.
 
-## Notes on this polish pass
+## Notes on this interaction-craft pass
 
-Same design, same pages, same colors — this round only upgraded motion,
-interaction, and sound realism:
+Same design, same pages — this round rebuilt three interactions to feel
+like real physical objects rather than web elements. No GSAP was added
+(kept the site dependency-free); instead it uses real CSS 3D transforms
+(`perspective`, `rotateX` from proper hinge points) with physics-shaped
+easing curves — a slow decelerate curve for paper/lid motion, and a
+gravity-style accelerating curve for anything falling.
 
-- **Page 1** — shooting stars now streak across the sky every 15–25
-  seconds. Tapping Open makes the stars zoom/converge toward the center
-  before the fade to black.
-- **Page 2** — the wax seal gently pulses while waiting to be tapped. On
-  tap, the background softly blurs and zooms in behind the envelope for
-  focus. The letter card is now a warm textured paper (not glass), with a
-  handwritten-style signature — "— Your Little Brother ❤️" — that fades in
-  once the message finishes typing.
-- **Page 3** — swiping now plays a light page-turn sound.
-- **Page 4** — the gift's bow now falls away naturally (instead of flying
-  up) before the lid opens and gold light bursts. There's a beat of silence
-  after the burst before the first firework launches. The ending is now
-  sequential: title fades in, 2 seconds later "I love you" appears, 2
-  seconds after that the call button appears. Tap "Call Your Little
-  Brother" and when you return to the tab afterward, everything quietly
-  fades except the stars and a final line: *"Thank you for opening my
-  heart, Didi. ❤️"*
+- **Envelope** — proper 3D hinge (not a flat flip), a wax seal that pulses
+  gently then visibly cracks into two halves that rotate apart, fine paper
+  fiber texture, and a letter that peeks out and can genuinely be **dragged
+  upward** to pull it free (it resists as you drag, and springs back if you
+  let go too early). If you don't drag it, it gently continues on its own
+  after a beat, so no one gets stuck.
+- **Letter** — real ivory stationery texture with fiber grain, embossed
+  shadow, and two subtle fold-crease lines like an actual tri-folded
+  letter. It's built from **three hinged panels** that flip open one after
+  another (not scaled or faded) to reveal the message underneath, floats
+  very gently as if resting on a table, and ends in a handwritten-style
+  signature in a cursive font — "— Your Little Brother ❤️".
+- **Gift** — completely restaged: tap → box gives slightly → ribbon and bow
+  visibly loosen → bow falls away under gravity → ribbon falls → lid lifts
+  from a **back hinge** in true 3D → golden light leaks through the
+  growing gap and brightens as it opens. The fireworks/confetti/balloons
+  are now triggered by listening directly to the lid's own `transitionend`
+  event, so they always start in sync with the lid actually finishing —
+  not a guessed timeout. Retapping mid-animation is now ignored, so it
+  can't double-trigger.
 
-### A transparent note on the fireworks sound
+### About the sound effects (same note as before)
 
-I don't have the ability to source or license real fireworks/crowd
-recordings — everything audio-related is synthesized live in the browser
-with the Web Audio API. I've layered it as much as I can (a whoosh, a
-crackle burst, a soft echo), but it will never sound like an actual
-recording, however good the synthesis gets.
-
-If real recorded sound matters to you, the way to get there is to find or
-record 3–4 short clips yourself — a firework whoosh+boom, distant crowd
-ambience, paper flutter, a soft chime — and send them over. I can then wire
-them into the code with proper timing and layering, which will sound far
-more convincing than synthesis ever will. Until then, the synthesized
-versions are what's live.
+Nothing here uses real recordings — everything is synthesized live with
+the Web Audio API, since I have no way to source or license actual
+recordings. If you want true recorded realism (especially for the
+fireworks), send me a few short real clips and I'll wire them in.
 
 ### If photos or music still don't show up after uploading
 

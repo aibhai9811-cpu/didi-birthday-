@@ -8,7 +8,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Caveat:wght@600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css" />
 </head>
@@ -81,24 +81,37 @@
   </svg>
 
   <div class="envelope-stage" id="envelopeStage">
-    <button class="envelope" id="envelopeBtn" aria-label="Tap to open the letter">
+    <div class="envelope-3d" id="envelope3d">
       <span class="envelope-shadow"></span>
-      <span class="envelope-letter-peek"></span>
-      <span class="envelope-body"></span>
-      <span class="envelope-flap"></span>
-      <span class="envelope-seal">♥</span>
-    </button>
-    <p class="envelope-hint reveal">Tap the envelope to open it</p>
-  </div>
 
-  <div class="act-inner letter-inner letter-card" id="letterCard">
-    <div class="letter-mark" aria-hidden="true">☾</div>
-    <p class="type-text" id="typeText"></p>
-    <p class="letter-signature" id="letterSignature">— Your Little Brother <span aria-hidden="true">❤️</span></p>
-    <button id="continueBtn" class="ghost-btn is-hidden">
-      <span>Continue</span>
-      <span class="arrow">→</span>
-    </button>
+      <div class="letter-pullout" id="letterPullout">
+        <div class="act-inner letter-inner letter-card" id="letterCard">
+          <div class="letter-fold fold-1" id="fold1"></div>
+          <div class="letter-fold fold-2" id="fold2"></div>
+          <div class="letter-fold fold-3" id="fold3"></div>
+          <div class="letter-content">
+            <div class="letter-mark" aria-hidden="true">☾</div>
+            <p class="type-text" id="typeText"></p>
+            <p class="letter-signature" id="letterSignature">— Your Little Brother <span aria-hidden="true">❤️</span></p>
+            <button id="continueBtn" class="ghost-btn is-hidden">
+              <span>Continue</span>
+              <span class="arrow">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <span class="envelope-body"></span>
+      <span class="envelope-flap" id="envelopeFlap">
+        <span class="envelope-seal" id="envelopeSeal">
+          <span class="seal-half seal-left">♥</span>
+          <span class="seal-half seal-right">♥</span>
+        </span>
+      </span>
+
+      <button class="envelope-tap" id="envelopeBtn" aria-label="Tap to open the letter"></button>
+    </div>
+    <p class="envelope-hint reveal" id="envelopeHint">Tap the envelope to open it</p>
   </div>
 </section>
 
@@ -126,14 +139,16 @@
   <div class="balloon-field" id="balloonField" aria-hidden="true"></div>
 
   <div class="gift-stage" id="giftStage">
-    <button class="gift-box" id="giftBox" aria-label="Tap to open your gift">
+    <div class="gift-box-3d" id="giftBox">
       <span class="gift-glow"></span>
-      <span class="gift-lid"></span>
-      <span class="gift-ribbon-v"></span>
-      <span class="gift-ribbon-h"></span>
-      <span class="gift-bow">🎀</span>
+      <span class="gift-light-leak" id="giftLightLeak"></span>
+      <span class="gift-lid" id="giftLid"></span>
+      <span class="gift-ribbon-v" id="giftRibbonV"></span>
+      <span class="gift-ribbon-h" id="giftRibbonH"></span>
+      <span class="gift-bow" id="giftBow">🎀</span>
       <span class="gift-body"></span>
-    </button>
+      <button class="gift-tap" id="giftTap" aria-label="Tap to open your gift"></button>
+    </div>
     <p class="gift-hint reveal">Tap the gift</p>
   </div>
 

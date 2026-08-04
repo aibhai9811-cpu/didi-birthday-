@@ -425,11 +425,13 @@ Bas shayad main kabhi bol hi nahi paaya...`;
      PAGE 2 — envelope, then the letter types itself out
   ============================================================ */
   const envelopeStage = document.getElementById('envelopeStage');
+  const envelope3d = document.getElementById('envelope3d');
   const envelopeBtn = document.getElementById('envelopeBtn');
+  const envelopeHint = document.getElementById('envelopeHint');
+  const letterPullout = document.getElementById('letterPullout');
   const letterCard = document.getElementById('letterCard');
   const typeText = document.getElementById('typeText');
   const continueBtn = document.getElementById('continueBtn');
-
   const letterSignature = document.getElementById('letterSignature');
 
   function startTypewriter() {
@@ -465,35 +467,106 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     tick();
   }
 
+  function nudgeMusicLouder() {
+    if (bgMusic.paused) return;
+    const targetVol = Math.min(bgMusic.volume + 0.18, 0.85);
+    const startVol = bgMusic.volume;
+    const steps = 12;
+    let s = 0;
+    const rampId = setInterval(() => {
+      s++;
+      bgMusic.volume = startVol + (targetVol - startVol) * (s / steps);
+      if (s >= steps) clearInterval(rampId);
+    }, 60);
+  }
+
+  function beginUnfoldAndType() {
+    envelopeStage.classList.add('is-hidden');
+    letterCard.classList.add('is-unfolded');
+    // typewriter starts once the last fold has finished opening (matches its transition-delay + duration)
+    setTimeout(startTypewriter, 900);
+  }
+
+  function pullLetterFullyOut() {
+    letterPullout.classList.remove('is-peeking', 'is-dragging');
+    letterPullout.classList.add('is-out');
+    playPaperSound();
+    setTimeout(beginUnfoldAndType, 950);
+  }
+
   let envelopeOpened = false;
+  let dragStartY = 0;
+  let dragCurrentY = 0;
+  let dragging = false;
+  let autoPullTimer = null;
+  const PEEK_TRANSLATE = -34; // matches .is-peeking in %, used for drag math
+  const PULL_THRESHOLD = 55; // px of upward drag needed to fully pull the letter out
+
+  function onDragStart(e) {
+    if (!letterPullout.classList.contains('is-peeking')) return;
+    dragging = true;
+    clearTimeout(autoPullTimer);
+    dragStartY = (e.touches ? e.touches[0].clientY : e.clientY);
+    letterPullout.classList.add('is-dragging');
+  }
+  function onDragMove(e) {
+    if (!dragging) return;
+    dragCurrentY = (e.touches ? e.touches[0].clientY : e.clientY);
+    const deltaY = dragStartY - dragCurrentY; // positive = dragging upward
+    const resisted = Math.max(0, deltaY) * 0.7;
+    letterPullout.style.transform = `translateY(calc(${PEEK_TRANSLATE}% - ${resisted}px))`;
+    if (deltaY > PULL_THRESHOLD) {
+      dragging = false;
+      letterPullout.style.transform = '';
+      pullLetterFullyOut();
+    }
+  }
+  function onDragEnd() {
+    if (!dragging) return;
+    dragging = false;
+    letterPullout.classList.remove('is-dragging');
+    letterPullout.style.transform = '';
+    // sprang back to peek position — give it another moment, then auto-continue
+    autoPullTimer = setTimeout(pullLetterFullyOut, 1600);
+  }
+
+  letterPullout.addEventListener('pointerdown', onDragStart);
+  window.addEventListener('pointermove', onDragMove);
+  window.addEventListener('pointerup', onDragEnd);
+  letterPullout.addEventListener('touchstart', onDragStart, { passive: true });
+  window.addEventListener('touchmove', onDragMove, { passive: true });
+  window.addEventListener('touchend', onDragEnd);
+
   envelopeBtn.addEventListener('click', () => {
     if (envelopeOpened) return;
     envelopeOpened = true;
     vibrate([8, 30, 10]);
     playPaperSound();
-    envelopeBtn.classList.add('is-cracking');
+    getAudioCtx();
+
+    // 1. envelope presses slightly under the tap
+    envelope3d.classList.add('is-pressed');
+    setTimeout(() => envelope3d.classList.remove('is-pressed'), 150);
+
+    // 2. seal compresses, then cracks
+    envelope3d.classList.add('is-cracking');
     document.body.classList.add('envelope-focus');
+    envelopeHint.classList.add('is-hidden');
+    nudgeMusicLouder();
 
-    setTimeout(() => { envelopeBtn.classList.add('is-open'); }, 320);
-
-    // nudge the music a touch louder for this personal moment
-    if (!bgMusic.paused) {
-      const targetVol = Math.min(bgMusic.volume + 0.18, 0.85);
-      const startVol = bgMusic.volume;
-      const steps = 12;
-      let s = 0;
-      const rampId = setInterval(() => {
-        s++;
-        bgMusic.volume = startVol + (targetVol - startVol) * (s / steps);
-        if (s >= steps) clearInterval(rampId);
-      }, 60);
-    }
-
+    // 3. flap opens on its hinge
     setTimeout(() => {
-      envelopeStage.classList.add('is-hidden');
-      letterCard.classList.add('is-shown');
-      startTypewriter();
-    }, 1050);
+      envelope3d.classList.add('is-open');
+      playPaperSound();
+    }, 420);
+
+    // 4. letter peeks upward, waiting to be pulled
+    setTimeout(() => {
+      letterPullout.classList.add('is-peeking');
+      vibrate(6);
+      // if the person doesn't try dragging it, continue on its own
+      autoPullTimer = setTimeout(pullLetterFullyOut, 1600);
+    }, 1500);
   });
 
   continueBtn.addEventListener('click', () => {
@@ -888,20 +961,53 @@ Bas shayad main kabhi bol hi nahi paaya...`;
     }, titleAt + 7000);
   }
 
-  giftBox.addEventListener('click', () => {
-    vibrate([12, 30, 10, 30, 40]);
+  const giftTap = document.getElementById('giftTap');
+  const giftLid = document.getElementById('giftLid');
+  let giftOpening = false;
+
+  giftTap.addEventListener('click', () => {
+    if (giftOpening) return; // ignore repeat taps while the animation runs
+    giftOpening = true;
+
+    vibrate(14);
     getAudioCtx();
-    giftBox.classList.add('is-opening');
-    playPaperSound();
 
-    // bow falls, ribbon unties, lid opens, golden light bursts
-    setTimeout(() => playChime(), 500);
+    // 1. the box gives slightly under the tap
+    giftBox.classList.add('is-pressed');
+    setTimeout(() => giftBox.classList.remove('is-pressed'), 140);
 
+    // 2. ribbon + bow loosen first — a small give before anything lets go
     setTimeout(() => {
+      giftBox.classList.add('is-loosening');
+      playPaperSound();
+    }, 160);
+
+    // 3. bow falls, ribbon falls, lid lifts from its back hinge, light leaks through the gap
+    setTimeout(() => {
+      giftBox.classList.remove('is-loosening');
+      giftBox.classList.add('is-opening', 'is-bursting');
+      vibrate([10, 20, 10]);
+    }, 620);
+
+    // 4. only once the lid has fully finished opening does the celebration begin —
+    //    listened for directly on the lid's own transition, so it's always in sync
+    const onLidOpened = (e) => {
+      if (e.propertyName !== 'transform') return;
+      giftLid.removeEventListener('transitionend', onLidOpened);
       giftStage.classList.add('is-hidden');
       showAct(4);
       startFinale();
-    }, 1050);
+    };
+    giftLid.addEventListener('transitionend', onLidOpened);
+
+    // fallback in case a transitionend somehow doesn't fire (older browsers, tab throttling)
+    setTimeout(() => {
+      if (giftStage.classList.contains('is-hidden')) return;
+      giftLid.removeEventListener('transitionend', onLidOpened);
+      giftStage.classList.add('is-hidden');
+      showAct(4);
+      startFinale();
+    }, 2600);
   });
 
   /* ---- welcome back from the phone call: a quiet closing moment ---- */

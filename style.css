@@ -572,7 +572,7 @@ body.is-bright .glow{ opacity: 0.55; }
 .gift-hint{ margin: 0; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--ink-faint); animation-delay: 0.4s; }
 .gift-hint.is-hidden{ animation: none; opacity: 0; transition: opacity 0.5s var(--ease-out); }
 
-.finale-inner{ position: relative; z-index: 3; gap: 22px; padding-bottom: 110px; }
+.finale-inner{ position: relative; z-index: 3; gap: 22px; padding-bottom: 110px; pointer-events: none; }
 .finale-title{
   font-family: var(--display); font-weight: 500; font-size: clamp(2.4rem, 8vw, 4.6rem); line-height: 1.12; margin: 0; color: var(--ink);
   opacity: 0; transform: translateY(16px) scale(0.97); filter: blur(6px);

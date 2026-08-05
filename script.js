@@ -89,7 +89,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       scheduleShootingStar();
     }, delay);
   }
-  scheduleShootingStar();
+  try { scheduleShootingStar(); } catch (e) { /* decorative only, safe to skip */ }
 
   function drawShootingStars() {
     shootingStars.forEach(s => {
@@ -188,7 +188,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       fireflyField.appendChild(f);
     }
   }
-  if (!prefersReducedMotion) spawnFireflies(16);
+  try { if (!prefersReducedMotion) spawnFireflies(16); } catch (e) { /* decorative only, safe to skip */ }
 
   /* ============================================================
      Synthesized sound effects — no audio files needed

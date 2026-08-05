@@ -498,7 +498,8 @@ body.is-bright .glow{ opacity: 0.55; }
 .gift-box-3d.is-pressed .gift-body{ transform: translateY(3px); }
 
 .gift-tap{
-  position: absolute; inset: 0; z-index: 7; background: transparent; cursor: pointer; width: 100%; height: 100%;
+  position: absolute; inset: 0; z-index: 8; width: 100%; height: 100%;
+  background: transparent; cursor: pointer; border: none; padding: 0; margin: 0;
 }
 
 .gift-glow{

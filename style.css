@@ -42,9 +42,26 @@ body{
   cursor: default;
   -webkit-font-smoothing: antialiased;
   transition: background 1.4s var(--ease-soft);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
 }
 body.is-bright{
   background: radial-gradient(120% 90% at 50% -10%, #1c2740 0%, #0e1526 55%, #05070d 100%);
+}
+
+/* the letter's message stays selectable/readable normally */
+.type-text, .letter-signature{
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.gift-tap, .envelope-tap, .gift-box-3d, .envelope-3d, .letter-pullout, .open-btn, .call-btn, .ghost-btn, .music-toggle{
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 ::-webkit-scrollbar{ width: 10px; }
@@ -572,7 +589,7 @@ body.is-bright .glow{ opacity: 0.55; }
 .gift-hint{ margin: 0; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--ink-faint); animation-delay: 0.4s; }
 .gift-hint.is-hidden{ animation: none; opacity: 0; transition: opacity 0.5s var(--ease-out); }
 
-.finale-inner{ position: relative; z-index: 3; gap: 22px; padding-bottom: 110px; pointer-events: none; }
+.finale-inner{ position: relative; z-index: 3; gap: 22px; padding-bottom: 110px; }
 .finale-title{
   font-family: var(--display); font-weight: 500; font-size: clamp(2.4rem, 8vw, 4.6rem); line-height: 1.12; margin: 0; color: var(--ink);
   opacity: 0; transform: translateY(16px) scale(0.97); filter: blur(6px);
@@ -676,18 +693,4 @@ body.is-quiet-ending .finale-sub{
   }
   .polaroid-photo img{ animation: none; }
   .gift-box{ animation: none; }
-   /* --- FOOLPROOF GIFT TAP FIX --- */
-.gift-stage {
-  z-index: 99 !important;
-}
-
-.gift-tap {
-  z-index: 99 !important;
-  /* Some mobile previewers ignore taps on 100% transparent objects. 
-     This gives it 1% opacity—invisible to the eye, but solid for the phone to touch. */
-  background: rgba(255, 255, 255, 0.01) !important; 
-}
-
-.finale-inner {
-  pointer-events: none !important;
 }

@@ -964,7 +964,7 @@ Bas shayad main kabhi bol hi nahi paaya...`;
   const giftLid = document.getElementById('giftLid');
   let giftOpening = false;
 
-  giftTap.addEventListener('click', () => {
+  function openGift() {
     if (giftOpening) return; // ignore repeat taps while the animation runs
     giftOpening = true;
 
@@ -988,26 +988,20 @@ Bas shayad main kabhi bol hi nahi paaya...`;
       vibrate([10, 20, 10]);
     }, 620);
 
-    // 4. only once the lid has fully finished opening does the celebration begin —
-    //    listened for directly on the lid's own transition, so it's always in sync
-    const onLidOpened = (e) => {
-      if (e.propertyName !== 'transform') return;
-      giftLid.removeEventListener('transitionend', onLidOpened);
-      giftStage.classList.add('is-hidden');
-      showAct(4);
-      startFinale();
-    };
-    giftLid.addEventListener('transitionend', onLidOpened);
-
-    // fallback in case a transitionend somehow doesn't fire (older browsers, tab throttling)
+    // 4. celebration begins on a guaranteed timer (matches the lid's own animation length) —
+    //    not tied to a CSS transition event, so it always fires regardless of device quirks
     setTimeout(() => {
-      if (giftStage.classList.contains('is-hidden')) return;
-      giftLid.removeEventListener('transitionend', onLidOpened);
       giftStage.classList.add('is-hidden');
       showAct(4);
       startFinale();
-    }, 2600);
-  });
+    }, 2000);
+  }
+
+  giftTap.addEventListener('click', openGift);
+  giftTap.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    openGift();
+  }, { passive: false });
 
   /* ---- welcome back from the phone call: a quiet closing moment ---- */
   callBtn.addEventListener('click', () => {
